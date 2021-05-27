@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "aws-sqs-batchlib"
+version = "0.1.0"
+description = "Library working with Amazon SQS"
+authors = ["Sami Jaktholm <sjakthol@outlook.com>"]
+license = "MIT"
+packages = [
+  {include = "py.typed"}
+]
+
+[tool.poetry.dependencies]
+python = ">=3.6.2,<4.0"
+botocore = "<2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.3"
+pylint = "^2.7.4"
+black = "^21.5b1"
+mypy = "^0.812"
+tox = "^3.23.0"
+bandit = "^1.7.0"
+safety = "^1.10.3"
+moto = {extras = ["sqs"], version = "^2.0.5"}
+pytest-cov = "^2.11.1"
+pyformance = "^0.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
