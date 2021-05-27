@@ -83,3 +83,7 @@ python3 benchmark/benchmark.py \
 ```
 
 Single thread is able to receive / send around 400 messages per second to an SQS queue on the same AWS region (eu-north-1, m5.large instance).
+
+## License
+
+MIT.
