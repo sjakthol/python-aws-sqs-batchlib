@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "aws-sqs-batchlib"
-version = "0.1.1"
+version = "0.1.2"
 description = "Library working with Amazon SQS"
 authors = ["Sami Jaktholm <sjakthol@outlook.com>"]
 license = "MIT"
 packages = [
+  {include = "aws_sqs_batchlib.py"},
   {include = "py.typed"}
 ]
 readme = 'README.md'
