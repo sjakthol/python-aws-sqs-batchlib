@@ -20,7 +20,7 @@ pylint = "^2.11.1"
 black = "^21.10b0"
 mypy = "^0.910"
 tox = "^3.24.4"
-bandit = "^1.7.0"
+bandit = "^1.7.1"
 safety = "^1.10.3"
 moto = {extras = ["sqs"], version = "^2.2.15"}
 pytest-cov = "^3.0.0"
