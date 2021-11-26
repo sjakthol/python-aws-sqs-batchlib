@@ -16,7 +16,7 @@ botocore = "<2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
-pylint = "^2.11.1"
+pylint = "^2.12.1"
 mypy = "^0.910"
 tox = "^3.24.4"
 bandit = "^1.7.1"
