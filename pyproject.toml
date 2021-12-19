@@ -21,7 +21,7 @@ mypy = "^0.920"
 tox = "^3.24.4"
 bandit = "^1.7.1"
 safety = "^1.10.3"
-moto = {extras = ["sqs"], version = "^2.2.18"}
+moto = {extras = ["sqs"], version = "^2.2.19"}
 pytest-cov = "^3.0.0"
 pyformance = "^0.4"
 black = "^21.12b0"
