@@ -18,7 +18,7 @@ botocore = "<2"
 pytest = "^6.2.5"
 pylint = "^2.12.2"
 mypy = "^0.930"
-tox = "^3.24.4"
+tox = "^3.24.5"
 bandit = "^1.7.1"
 safety = "^1.10.3"
 moto = {extras = ["sqs"], version = "^2.3.0"}
