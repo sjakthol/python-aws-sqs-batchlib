@@ -65,9 +65,7 @@ def consumer_lib(args, stop_event):
 
 def producer(args, stop_event):
     """Produce messages to given SQS queue until stop signal arrives."""
-    entries = [
-        {"Id": str(i), "MessageBody": "A" * 10 * 1024} for i in range(10)
-    ]
+    entries = [{"Id": str(i), "MessageBody": "A" * 10 * 1024} for i in range(10)]
 
     sqs = get_client()
 
@@ -145,8 +143,7 @@ def main():
                 done, futures = concurrent.futures.wait(futures, timeout=1.0)
                 metrics = pyformance.dump_metrics()
                 metrics["latency"] = {
-                    k: round(v, 3)
-                    for k, v in metrics.get("latency", {}).items()
+                    k: round(v, 3) for k, v in metrics.get("latency", {}).items()
                 }
                 logging.info("Metrics: %s", json.dumps(metrics))
                 pyformance.clear()

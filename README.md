@@ -48,14 +48,17 @@ assert res == {
 Requires Python 3 and Poetry. Useful commands:
 
 ```bash
-# Run tests
-poetry run tox -e test
+# Setup environment
+poetry install
+
+# Run tests (integration test requires rights to create, delete and use DynamoDB tables)
+make test
 
 # Run linters
-poetry run tox -e lint
+make -k lint
 
 # Format code
-poetry run tox -e format
+make format
 ```
 
 ## Benchmarks & Manual Testing
