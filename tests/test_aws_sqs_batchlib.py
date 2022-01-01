@@ -73,3 +73,27 @@ def test_consume(sqs_queue):
         )
         == sorted([str(i) for i in range(100)])
     )
+
+
+@pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,), (11,)])
+def test_delete(sqs_queue, num_messages):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(num_messages):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    batch = aws_sqs_batchlib.consume(
+        sqs_queue, batch_size=num_messages, maximum_batching_window_in_seconds=15
+    )
+    messages = batch["Messages"]
+    assert len(messages) == num_messages
+
+    delete_requests = [
+        {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+        for msg in messages
+    ]
+    resp = aws_sqs_batchlib.delete_message_batch(
+        QueueUrl=sqs_queue, Entries=delete_requests
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages

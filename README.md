@@ -4,9 +4,13 @@ Consume and process Amazon SQS queues in large batches.
 
 ## Features
 
-* Customizable batch size and batch window to consume and process messages
-  in larger (> 10 message) batches. Collect up-to 10,000 messages from a queue
-  and process them in one go.
+* Consume arbitrary number of messages from an Amazon SQS queue.
+
+  * Define maximum batch size and batching window in seconds to consume a batch
+    of messages from Amazon SQS queue similar to Lambda Event Source Mapping.
+
+* Delete arbitrary number of messages from an Amazon SQS queue.
+
 
 ## Installation
 
@@ -19,6 +23,8 @@ pip install aws-sqs-batchlib
 or with the package manager of choice.
 
 ## Usage
+
+### Consume
 
 ```python
 import aws_sqs_batchlib
@@ -42,6 +48,42 @@ assert res == {
     ]
 }
 ```
+
+### Delete
+
+```python
+import aws_sqs_batchlib
+
+# Delete an arbitrary number of messages from a queue
+res = aws_sqs_batchlib.delete_message_batch(
+    QueueUrl="https://sqs.eu-west-1.amazonaws.com/777907070843/test",
+    Entries=[
+        {"Id": "1", "ReceiptHandle": "<...>"},
+        {"Id": "2", "ReceiptHandle": "<...>"},
+        # ...
+        {"Id": "175", "ReceiptHandle": "<...>"},
+        # ...
+    ],
+)
+
+# Returns result in the same format as boto3 / botocore SQS Client
+# delete_message_batch() method.
+assert res == {
+    "Successful": [
+        {"Id": "1"},
+        # ...
+    ],
+    "Failed": [
+        {
+            "Id": "2",
+            "SenderFault": True,
+            "Code": "ReceiptHandleIsInvalid",
+            "Message": "The input receipt handle is invalid.",
+        }
+    ],
+}
+```
+
 
 ## Development
 

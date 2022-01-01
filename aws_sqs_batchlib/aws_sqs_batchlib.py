@@ -1,18 +1,31 @@
 """Amazon SQS Batchlib"""
 
 import time
-from typing import List, TYPE_CHECKING
+from typing import List, Sequence, TYPE_CHECKING
 
 import boto3
 
 if TYPE_CHECKING:  # pragma: no cover
     from mypy_boto3_sqs import SQSClient
-    from mypy_boto3_sqs.type_defs import MessageTypeDef
+    from mypy_boto3_sqs.type_defs import (
+        MessageTypeDef,
+        DeleteMessageBatchRequestEntryTypeDef,
+        DeleteMessageBatchResultEntryTypeDef,
+        BatchResultErrorEntryTypeDef,
+    )
     from typing_extensions import TypedDict
 
     ReceiveMessageResultTypeDef = TypedDict(
         "ReceiveMessageResultTypeDef",
         {"Messages": List["MessageTypeDef"]},
+    )
+
+    DeleteMessageBatchResultTypeDef = TypedDict(
+        "DeleteMessageBatchResultTypeDef",
+        {
+            "Successful": List["DeleteMessageBatchResultEntryTypeDef"],
+            "Failed": List["BatchResultErrorEntryTypeDef"],
+        },
     )
 
 
@@ -79,3 +92,37 @@ def consume(
         )
 
     return {"Messages": batch}
+
+
+def delete_message_batch(
+    QueueUrl: str,  # pylint: disable=invalid-name
+    Entries: Sequence[
+        "DeleteMessageBatchRequestEntryTypeDef"
+    ],  # pylint: disable=invalid-name
+    sqs_client: "SQSClient" = None,
+) -> "DeleteMessageBatchResultTypeDef":
+    """Delete arbitrary number of messages from SQS queue.
+
+    This method performs multiple boto3 SQS delete_message_batch() to delete an
+    arbitrary number of messages from an SQS queue.
+
+    Args:
+        QueueUrl: The URL of the Amazon SQS queue from which messages are deleted.
+        Entries: A list of receipt handles for the messages to be deleted.
+        sqs_client: boto3 SQS client to use. Optional. Default: client created with default
+                    session and configuration.
+
+    Returns:
+        Same as boto3 SQS delete_message_batch() method.
+    """
+    sqs_client = sqs_client or create_sqs_client()
+    result: "DeleteMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
+
+    while Entries:
+        chunk, Entries = Entries[:10], Entries[10:]
+        res = sqs_client.delete_message_batch(QueueUrl=QueueUrl, Entries=chunk)
+
+        result["Failed"].extend(res.get("Failed", []))
+        result["Successful"].extend(res.get("Successful", []))
+
+    return result
