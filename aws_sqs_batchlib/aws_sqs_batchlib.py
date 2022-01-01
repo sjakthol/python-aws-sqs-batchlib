@@ -72,7 +72,7 @@ def consume(
         batch.extend(
             sqs_client.receive_message(
                 QueueUrl=queue_url,
-                MaxNumberOfMessages=min(batch_size, 10),
+                MaxNumberOfMessages=min(batch_size - len(batch), 10),
                 WaitTimeSeconds=1,
                 **kwargs
             ).get("Messages", [])
