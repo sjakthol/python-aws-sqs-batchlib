@@ -103,7 +103,7 @@ def delete_message_batch(
 ) -> "DeleteMessageBatchResultTypeDef":
     """Delete arbitrary number of messages from SQS queue.
 
-    This method performs multiple boto3 SQS delete_message_batch() to delete an
+    This method performs multiple boto3 SQS delete_message_batch() calls to delete an
     arbitrary number of messages from an SQS queue.
 
     Args:
