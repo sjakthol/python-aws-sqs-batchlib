@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws-sqs-batchlib"
-version = "0.1.2"
+version = "1.0.0"
 description = "Library working with Amazon SQS"
 authors = ["Sami Jaktholm <sjakthol@outlook.com>"]
 license = "MIT"
