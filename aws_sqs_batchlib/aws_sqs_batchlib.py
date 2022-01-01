@@ -1,25 +1,33 @@
 """Amazon SQS Batchlib"""
-__version__ = "1.0.1"
 
 import time
-from typing import List
+from typing import List, TYPE_CHECKING
 
-import botocore.session  # type: ignore
+import boto3
+
+if TYPE_CHECKING:  # pragma: no cover
+    from mypy_boto3_sqs import SQSClient
+    from mypy_boto3_sqs.type_defs import MessageTypeDef
+    from typing_extensions import TypedDict
+
+    ReceiveMessageResultTypeDef = TypedDict(
+        "ReceiveMessageResultTypeDef",
+        {"Messages": List["MessageTypeDef"]},
+    )
 
 
-def create_sqs_client():
+def create_sqs_client() -> "SQSClient":
     """Create default SQS client."""
-    session = botocore.session.get_session()
-    return session.create_client("sqs")
+    return boto3.client("sqs")
 
 
 def consume(
     queue_url: str,
     batch_size: int = 10,
     maximum_batching_window_in_seconds: float = 1,
-    sqs_client=None,
+    sqs_client: "SQSClient" = None,
     **kwargs
-) -> dict:
+) -> "ReceiveMessageResultTypeDef":
     """Consume a batch of messages from SQS.
 
     This method consumes up-to `batch_size` messages from a queue, making
@@ -34,16 +42,16 @@ def consume(
         maximum_batching_window_in_seconds: The maximum amount of time
             to gather messages before returning them to the caller, in
             seconds. Default: 1.
-        sqs_client: boto3 / botocore SQS client to use. Optional. Default:
+        sqs_client: boto3 SQS client to use. Optional. Default:
             client created with default session and configuration.
-        **kwargs: Additional arguments to pass to botocore SQS client
+        **kwargs: Additional arguments to pass to boto3 SQS client
             receive_message() function. Following arguments are not
             supported and will be omitted: QueueUrl, MaxNumberOfMessages,
             WaitTimeSeconds, ReceiveRequestAttemptId
 
     Returns:
         Dictionary with a single "Messages" item that contains a list of
-        SQS messages (same as botocore SQS client receive_message()).
+        SQS messages (same as boto3 SQS client receive_message()).
 
     """
     sqs_client = sqs_client or create_sqs_client()
@@ -55,7 +63,7 @@ def consume(
     kwargs.pop("WaitTimeSeconds", None)
     kwargs.pop("ReceiveRequestAttemptId", None)
 
-    batch: List[dict] = []
+    batch: List["MessageTypeDef"] = []
     start = time.time()
     while (
         time.time() - start < maximum_batching_window_in_seconds

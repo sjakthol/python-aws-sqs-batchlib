@@ -4,25 +4,23 @@ version = "1.0.1"
 description = "Library working with Amazon SQS"
 authors = ["Sami Jaktholm <sjakthol@outlook.com>"]
 license = "MIT"
-packages = [
-  {include = "aws_sqs_batchlib.py"},
-  {include = "py.typed"}
-]
 readme = 'README.md'
 
 [tool.poetry.dependencies]
 python = "^3.7"
-botocore = "<2"
+boto3 = "^1.20.26"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.1"
 black = "^21.12b0"
+boto3-stubs = {extras = ["sqs"], version = "^1.20.26"}
 moto = {extras = ["sqs"], version = "^2.3.0"}
 mypy = "^0.930"
 pyformance = "^0.4"
 pylint = "^2.12.2"
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
+typing-extensions = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
