@@ -5,13 +5,13 @@ test:
 
 lint: lint-pylint lint-black lint-mypy lint-bandit
 lint-pylint:
-	poetry run pylint --max-line-length=120 --score=n aws_sqs_batchlib.py tests
+	poetry run pylint --max-line-length=120 --score=n aws_sqs_batchlib tests
 lint-black:
-	poetry run black --check aws_sqs_batchlib.py tests benchmark
+	poetry run black --check aws_sqs_batchlib tests benchmark
 lint-mypy:
-	poetry run mypy aws_sqs_batchlib.py benchmark
+	poetry run mypy aws_sqs_batchlib benchmark
 lint-bandit:
-	poetry run bandit -q -r aws_sqs_batchlib.py benchmark
+	poetry run bandit -q -r aws_sqs_batchlib benchmark
 
 format:
-	poetry run black aws_sqs_batchlib.py tests benchmark
+	poetry run black aws_sqs_batchlib tests benchmark
