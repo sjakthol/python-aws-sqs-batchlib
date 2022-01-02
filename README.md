@@ -59,7 +59,7 @@ assert res == {
     'Messages': [
         {'MessageId': '[.]', 'ReceiptHandle': 'AQ[.]JA==', 'MD5OfBody': '[.]', 'Body': '[.]'},
         {'MessageId': '[.]', 'ReceiptHandle': 'AQ[.]wA==', 'MD5OfBody': '[.]', 'Body': '[.]'}
-        # ... up-to 1000 messages
+        # ... up-to 100 messages
     ]
 }
 ```
@@ -106,7 +106,7 @@ import aws_sqs_batchlib
 
 # Delete an arbitrary number of messages from a queue
 res = aws_sqs_batchlib.delete_message_batch(
-    QueueUrl="https://sqs.eu-west-1.amazonaws.com/123456789012/MyQueue",
+    QueueUrl="https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
     Entries=[
         {"Id": "1", "ReceiptHandle": "<...>"},
         {"Id": "2", "ReceiptHandle": "<...>"},

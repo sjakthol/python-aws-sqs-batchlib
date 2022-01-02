@@ -47,20 +47,24 @@ def create_sqs_client() -> "SQSClient":
 def receive_message(
     sqs_client: "SQSClient" = None, **kwargs
 ) -> "ReceiveMessageResultTypeDef":
-    """Receive arbitrary number of messages from an Amazon SQS queue.
+    """Receive an arbitrary number of messages from an Amazon SQS queue.
 
     This method performs multiple boto3 SQS receive_message() calls to
-    consume an arbitrary number of messages from an SQS queue. It polls
-    the queue until `MaxNumberOfMessages` messages is received or
-    `WaitTimeSeconds` has elapsed.
+    consume an arbitrary number of messages from an Amazon SQS queue. It
+    polls the queue for messages until `MaxNumberOfMessages` messages is
+    received or `WaitTimeSeconds` has elapsed.
 
-    It accepts the same arguments as boto3 SQS receive_message().
+    receive_message() accepts the same arguments and has the same response
+    structure as boto3 SQS receive_message() method.
 
     Args:
-        sqs_client: boto3 SQS client to use. Optional. Default:
-                    client created with default session and configuration.
+        sqs_client: boto3 SQS client to use. Optional. Default: client created
+                    with default session and configuration.
         **kwargs: keyword arguments to pass to boto3 SQS receive_message()
                   method
+
+    Returns:
+        SQS messages similar to boto3 SQS receive_message() method.
     """
     sqs_client = sqs_client or create_sqs_client()
 
@@ -84,22 +88,22 @@ def delete_message_batch(
     ],  # pylint: disable=invalid-name
     sqs_client: "SQSClient" = None,
 ) -> "DeleteMessageBatchResultTypeDef":
-    """Delete arbitrary number of messages from an Amazon SQS queue.
+    """Delete an arbitrary number of messages from an Amazon SQS queue.
 
     This method performs multiple boto3 SQS delete_message_batch() calls to
     delete an arbitrary number of messages from an Amazon SQS queue.
 
-    It accepts the same arguments as boto3 SQS delete_message_batch().
+    delete_message_batch() accepts the same arguments and has the same response
+    structure as boto3 SQS delete_message_batch() method.
 
     Args:
         QueueUrl: The URL of the Amazon SQS queue from which messages are deleted.
         Entries: A list of receipt handles for the messages to be deleted.
-        sqs_client: boto3 SQS client to use. Optional. Default: client created with default
-                    session and configuration.
+        sqs_client: boto3 SQS client to use. Optional. Default: client created
+                    with default session and configuration.
 
     Returns:
-        A dict of form { "Successful": [], "Failed" [] } with structure similar to boto3 SQS
-        delete_message_batch() method return value.
+        Results similar to boto3 SQS delete_message_batch() method.
     """
     sqs_client = sqs_client or create_sqs_client()
     result: "DeleteMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
@@ -121,22 +125,24 @@ def send_message_batch(
     ],
     sqs_client: "SQSClient" = None,
 ) -> "SendMessageBatchResultTypeDef":
-    """Send arbitrary number of messages to an Amazon SQS queue.
+    """Send an arbitrary number of messages to an Amazon SQS queue.
 
     This method performs multiple boto3 SQS send_message_batch() calls to
-    send an arbitrary number of messages to an Amazon SQS queue.
+    delete an arbitrary number of messages from an Amazon SQS queue.
 
-    It accepts the same arguments as boto3 SQS send_message_batch().
+    send_message_batch() accepts the same arguments and has the same response
+    structure as boto3 SQS send_message_batch() method.
 
     Args:
-        QueueUrl: The URL of the Amazon SQS queue to which batched messages are sent.
-        Entries: A list of `` SendMessageBatchRequestEntry `` items.
-        sqs_client: boto3 SQS client to use. Optional. Default: client created with default
-                    session and configuration.
+        QueueUrl: The URL of the Amazon SQS queue to which batched messages
+                  are sent.
+        Entries: A list of send message entries for the messages to send to
+                 SQS.
+        sqs_client: boto3 SQS client to use. Optional. Default: client created
+                    with default session and configuration.
 
     Returns:
-        A dict of form { "Successful": [], "Failed" [] } with structure similar to boto3 SQS
-        send_message_batch() method return value.
+        Results similar to boto3 SQS send_message_batch() method.
     """
     sqs_client = sqs_client or create_sqs_client()
     result: "SendMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
