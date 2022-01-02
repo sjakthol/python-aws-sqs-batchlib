@@ -155,29 +155,24 @@ make format
 
 ## Benchmarks & Manual Testing
 
-Use `benchmark/benchmark.py` to benchmark and test the library functionality and performance. Execute following commands in Poetry virtualenv (execute `poetry shell` to get there):
+Use `benchmark/end2end.py` to benchmark and test the library functionality and performance. Execute following commands in Poetry virtualenv (execute `poetry shell` to get there):
 
 ```bash
 # Setup
 export PYTHONPATH=$(pwd)
 export AWS_DEFAULT_REGION=eu-north-1
 
-# Send messages to a queue
-python3 benchmark/benchmark.py \
-  --queue-url https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue producer
-
-# Consume messages with the plain SQS ReceiveMessage polling
-python3 benchmark/benchmark.py \
-  --queue-url https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue consumer-plain
-
-# Consume messages with the libary
-python3 benchmark/benchmark.py \
-  --queue-url https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue consumer-lib \
-  --batch-size 1000
-  --batch-window 1
+# Send, receive and delete 512 messages, run test 5 times
+python3 benchmark/end2end.py \
+  --queue-url https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue --num-messages 512 --iterations 5
 ```
 
-Single thread is able to receive / send around 400 messages per second to an SQS queue on the same AWS region (eu-north-1, m5.large instance).
+Benchmarks against an Amazon SQS queue on the same AWS region (eu-north-1, c5.large instance) show following
+throughput:
+
+* Send - ~500 to ~800 messages / second
+* Receive - ~800 to ~1400 messages / second
+* Delete - ~900 to ~1600 messages / second
 
 ## License
 
