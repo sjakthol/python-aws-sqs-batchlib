@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,redefined-outer-name
 import contextlib
-import itertools
-import operator
 import uuid
 
 import boto3
@@ -53,26 +51,39 @@ def sqs_queue(request, monkeypatch, _setup_env):
         sqs.delete_queue(QueueUrl=queue_url)
 
 
-def test_consume(sqs_queue):
+@pytest.mark.parametrize(
+    ["num_messages", "wait_time"], [(0, 1), (5, 5), (10, 10), (11, 11), (48, 15)]
+)
+def test_receive(sqs_queue, num_messages, wait_time):
     sqs = aws_sqs_batchlib.create_sqs_client()
-    for i in range(100):
+    for i in range(num_messages):
         sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
 
-    batch = aws_sqs_batchlib.consume(sqs_queue, 50)
-    assert len(batch["Messages"]) == 50
-
-    batch2 = aws_sqs_batchlib.consume(sqs_queue, 100)
-    assert len(batch2["Messages"]) == 50
-
-    assert (
-        sorted(
-            map(
-                operator.itemgetter("Body"),
-                itertools.chain(batch["Messages"], batch2["Messages"]),
-            )
-        )
-        == sorted([str(i) for i in range(100)])
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue, MaxNumberOfMessages=num_messages, WaitTimeSeconds=wait_time
     )
+    messages = batch["Messages"]
+    assert len(messages) == num_messages
+
+
+def test_receive_no_batching_args(sqs_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(4):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    aws_sqs_batchlib.receive_message(QueueUrl=sqs_queue)
+
+
+def test_receive_leave_extra_messages(sqs_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(25):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue, MaxNumberOfMessages=18, WaitTimeSeconds=15
+    )
+    messages = batch["Messages"]
+    assert len(messages) == 18
 
 
 @pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,), (11,)])
@@ -81,8 +92,8 @@ def test_delete(sqs_queue, num_messages):
     for i in range(num_messages):
         sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
 
-    batch = aws_sqs_batchlib.consume(
-        sqs_queue, batch_size=num_messages, maximum_batching_window_in_seconds=15
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue, MaxNumberOfMessages=num_messages, WaitTimeSeconds=15
     )
     messages = batch["Messages"]
     assert len(messages) == num_messages
@@ -109,8 +120,8 @@ def test_send(sqs_queue, num_messages):
     assert not resp["Failed"]
     assert len(resp["Successful"]) == num_messages
 
-    batch = aws_sqs_batchlib.consume(
-        sqs_queue, batch_size=num_messages, maximum_batching_window_in_seconds=15
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue, MaxNumberOfMessages=num_messages, WaitTimeSeconds=15
     )
     messages = batch["Messages"]
     assert len(messages) == num_messages

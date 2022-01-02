@@ -49,8 +49,8 @@ def consumer_plain(args, stop_event):
 def consumer_lib(args, stop_event):
     while not stop_event.is_set():
         with stopwatch() as get_elapsed_time:
-            res = aws_sqs_batchlib.consume(
-                args.queue_url, args.batch_size, args.batch_window
+            res = aws_sqs_batchlib.receive_message(
+                QueueUrl=args.queue_url, MaxNumberOfMessages=args.batch_size, WaitTimeSeconds=args.batch_window,
             )
         latency = get_elapsed_time()
 

@@ -6,7 +6,7 @@ Consume and process Amazon SQS queues in large batches.
 
 * Consume arbitrary number of messages from an Amazon SQS queue.
 
-  * Define maximum batch size and batching window in seconds to consume a batch
+  * Define maximum batch size and batching window in seconds to receive a batch
     of messages from Amazon SQS queue similar to Lambda Event Source Mapping.
 
 * Send arbitrary number of messages to an Amazon SQS queue.
@@ -26,18 +26,31 @@ or with the package manager of choice.
 
 ## Usage
 
-### Consume
+`aws-sqs-batchlib` provides the following methods:
+
+* `delete_message_batch()` - Delete arbitrary number of messages from an Amazon SQS queue.
+* `receive_message()` - Receive arbitrary number of messages from an Amazon SQS queue.
+* `send_message_batch()` - Send arbitrary number of messages to an Amazon SQS queue.
+
+These methods invoke the corresponding boto3 [SQS.Client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#client)
+methods multiple times to send, receive or delete an arbitrary number of messages from an Amazon SQS queue. They accept the same arguments and have
+the same response structure as their boto3 counterparts. See boto3 documentation for more details:
+
+* [delete_message_batch()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Client.delete_message_batch)
+* [receive_message()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Client.receive_message)
+* [send_message_batch()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Client.send_message_batch)
+
+### Receive
 
 ```python
 import aws_sqs_batchlib
 
-# Consume up-to 100 messages from the given queue, polling the queue for
-# up-to 1 second to fill the batch.
-res = aws_sqs_batchlib.consume(
-    queue_url = "https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
-    batch_size=100,
-    maximum_batching_window_in_seconds=1,
-    VisibilityTimeout=300,
+# Receive up-to 100 messages from the given queue, polling the queue for
+# up-to 15 seconds to fill the batch.
+res = aws_sqs_batchlib.receive_message(
+    QueueUrl = "https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
+    MaxNumberOfMessages=100,
+    WaitTimeSeconds=15,
 )
 
 # Returns messages in the same format as boto3 / botocore SQS Client
