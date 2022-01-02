@@ -9,6 +9,8 @@ Consume and process Amazon SQS queues in large batches.
   * Define maximum batch size and batching window in seconds to consume a batch
     of messages from Amazon SQS queue similar to Lambda Event Source Mapping.
 
+* Send arbitrary number of messages to an Amazon SQS queue.
+
 * Delete arbitrary number of messages from an Amazon SQS queue.
 
 
@@ -49,6 +51,41 @@ assert res == {
 }
 ```
 
+### Send
+
+```python
+import aws_sqs_batchlib
+
+# Send an arbitrary number of messages to a queue
+res = aws_sqs_batchlib.send_message_batch(
+    QueueUrl="https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
+    Entries=[
+        {"Id": "1", "MessageBody": "<...>"},
+        {"Id": "2", "MessageBody": "<...>", "DelaySeconds": 1000000},
+        # ...
+        {"Id": "175", "MessageBody": "<...>"},
+        # ...
+    ],
+)
+
+# Returns result in the same format as boto3 / botocore SQS Client
+# send_message_batch() method.
+assert res == {
+    "Successful": [
+        {"Id": "1", "MessageId": "<...>", "MD5OfMessageBody": "<...>"},
+        # ...
+    ],
+    "Failed": [
+        {
+            "Id": "2",
+            "SenderFault": True,
+            "Code": "InvalidParameterValue",
+            "Message": "Value 1000000 for parameter DelaySeconds is invalid. Reason: DelaySeconds must be >= 0 and <= 900.",
+        }
+    ],
+}
+```
+
 ### Delete
 
 ```python
@@ -56,7 +93,7 @@ import aws_sqs_batchlib
 
 # Delete an arbitrary number of messages from a queue
 res = aws_sqs_batchlib.delete_message_batch(
-    QueueUrl="https://sqs.eu-west-1.amazonaws.com/777907070843/test",
+    QueueUrl="https://sqs.eu-west-1.amazonaws.com/123456789012/MyQueue",
     Entries=[
         {"Id": "1", "ReceiptHandle": "<...>"},
         {"Id": "2", "ReceiptHandle": "<...>"},

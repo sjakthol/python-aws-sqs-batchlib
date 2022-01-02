@@ -8,10 +8,12 @@ import boto3
 if TYPE_CHECKING:  # pragma: no cover
     from mypy_boto3_sqs import SQSClient
     from mypy_boto3_sqs.type_defs import (
-        MessageTypeDef,
+        BatchResultErrorEntryTypeDef,
         DeleteMessageBatchRequestEntryTypeDef,
         DeleteMessageBatchResultEntryTypeDef,
-        BatchResultErrorEntryTypeDef,
+        MessageTypeDef,
+        SendMessageBatchRequestEntryTypeDef,
+        SendMessageBatchResultEntryTypeDef,
     )
     from typing_extensions import TypedDict
 
@@ -24,6 +26,14 @@ if TYPE_CHECKING:  # pragma: no cover
         "DeleteMessageBatchResultTypeDef",
         {
             "Successful": List["DeleteMessageBatchResultEntryTypeDef"],
+            "Failed": List["BatchResultErrorEntryTypeDef"],
+        },
+    )
+
+    SendMessageBatchResultTypeDef = TypedDict(
+        "SendMessageBatchResultTypeDef",
+        {
+            "Successful": List["SendMessageBatchResultEntryTypeDef"],
             "Failed": List["BatchResultErrorEntryTypeDef"],
         },
     )
@@ -101,10 +111,12 @@ def delete_message_batch(
     ],  # pylint: disable=invalid-name
     sqs_client: "SQSClient" = None,
 ) -> "DeleteMessageBatchResultTypeDef":
-    """Delete arbitrary number of messages from SQS queue.
+    """Delete arbitrary number of messages from an Amazon SQS queue.
 
-    This method performs multiple boto3 SQS delete_message_batch() calls to delete an
-    arbitrary number of messages from an SQS queue.
+    This method performs multiple boto3 SQS delete_message_batch() calls to
+    delete an arbitrary number of messages from an Amazon SQS queue.
+
+    It accepts the same arguments as boto3 SQS delete_message_batch().
 
     Args:
         QueueUrl: The URL of the Amazon SQS queue from which messages are deleted.
@@ -113,7 +125,8 @@ def delete_message_batch(
                     session and configuration.
 
     Returns:
-        Same as boto3 SQS delete_message_batch() method.
+        A dict of form { "Successful": [], "Failed" [] } with structure similar to boto3 SQS
+        delete_message_batch() method return value.
     """
     sqs_client = sqs_client or create_sqs_client()
     result: "DeleteMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
@@ -121,6 +134,43 @@ def delete_message_batch(
     while Entries:
         chunk, Entries = Entries[:10], Entries[10:]
         res = sqs_client.delete_message_batch(QueueUrl=QueueUrl, Entries=chunk)
+
+        result["Failed"].extend(res.get("Failed", []))
+        result["Successful"].extend(res.get("Successful", []))
+
+    return result
+
+
+def send_message_batch(
+    QueueUrl: str,  # pylint: disable=invalid-name
+    Entries: Sequence[  # pylint: disable=invalid-name
+        "SendMessageBatchRequestEntryTypeDef"
+    ],
+    sqs_client: "SQSClient" = None,
+) -> "SendMessageBatchResultTypeDef":
+    """Send arbitrary number of messages to an Amazon SQS queue.
+
+    This method performs multiple boto3 SQS send_message_batch() calls to
+    send an arbitrary number of messages to an Amazon SQS queue.
+
+    It accepts the same arguments as boto3 SQS send_message_batch().
+
+    Args:
+        QueueUrl: The URL of the Amazon SQS queue to which batched messages are sent.
+        Entries: A list of `` SendMessageBatchRequestEntry `` items.
+        sqs_client: boto3 SQS client to use. Optional. Default: client created with default
+                    session and configuration.
+
+    Returns:
+        A dict of form { "Successful": [], "Failed" [] } with structure similar to boto3 SQS
+        send_message_batch() method return value.
+    """
+    sqs_client = sqs_client or create_sqs_client()
+    result: "SendMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
+
+    while Entries:
+        chunk, Entries = Entries[:10], Entries[10:]
+        res = sqs_client.send_message_batch(QueueUrl=QueueUrl, Entries=chunk)
 
         result["Failed"].extend(res.get("Failed", []))
         result["Successful"].extend(res.get("Successful", []))
