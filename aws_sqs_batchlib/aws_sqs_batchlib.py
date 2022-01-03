@@ -41,7 +41,9 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def create_sqs_client() -> "SQSClient":
     """Create default SQS client."""
-    return boto3.client("sqs")
+    session = boto3.session.Session()
+    region = session.region_name
+    return boto3.client("sqs", endpoint_url=f"https://sqs.{region}.amazonaws.com")
 
 
 def receive_message(
