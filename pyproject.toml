@@ -13,7 +13,7 @@ boto3 = "^1.20.26"
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.1"
 black = "^21.12b0"
-boto3-stubs = {extras = ["sqs"], version = "^1.20.26"}
+boto3-stubs = {extras = ["sqs"], version = "^1.20.30"}
 moto = {extras = ["sqs"], version = "^2.3.0"}
 mypy = "^0.930"
 pyformance = "^0.4"
