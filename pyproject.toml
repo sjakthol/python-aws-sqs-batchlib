@@ -15,7 +15,7 @@ bandit = "^1.7.1"
 black = "^21.12b0"
 boto3-stubs = {extras = ["sqs"], version = "^1.20.35"}
 moto = {extras = ["sqs"], version = "^2.3.1"}
-mypy = "^0.930"
+mypy = "^0.931"
 pyformance = "^0.4"
 pylint = "^2.12.2"
 pytest = "^6.2.5"
