@@ -1,7 +1,7 @@
 """Amazon SQS Batchlib"""
 
 import time
-from typing import List, Sequence, TYPE_CHECKING
+from typing import List, Sequence, overload, Tuple, TYPE_CHECKING
 
 import boto3
 
@@ -85,7 +85,7 @@ def receive_message(
 
 def delete_message_batch(
     QueueUrl: str,  # pylint: disable=invalid-name
-    Entries: Sequence[
+    Entries: List[
         "DeleteMessageBatchRequestEntryTypeDef"
     ],  # pylint: disable=invalid-name
     sqs_client: "SQSClient" = None,
@@ -114,15 +114,17 @@ def delete_message_batch(
         chunk, Entries = Entries[:10], Entries[10:]
         res = sqs_client.delete_message_batch(QueueUrl=QueueUrl, Entries=chunk)
 
-        result["Failed"].extend(res.get("Failed", []))
+        failed, retryable = _divide_failures(res.get("Failed", []), chunk)
+        result["Failed"].extend(failed)
         result["Successful"].extend(res.get("Successful", []))
+        Entries = retryable + Entries
 
     return result
 
 
 def send_message_batch(
     QueueUrl: str,  # pylint: disable=invalid-name
-    Entries: Sequence[  # pylint: disable=invalid-name
+    Entries: List[  # pylint: disable=invalid-name
         "SendMessageBatchRequestEntryTypeDef"
     ],
     sqs_client: "SQSClient" = None,
@@ -153,7 +155,58 @@ def send_message_batch(
         chunk, Entries = Entries[:10], Entries[10:]
         res = sqs_client.send_message_batch(QueueUrl=QueueUrl, Entries=chunk)
 
-        result["Failed"].extend(res.get("Failed", []))
+        failed, retryable = _divide_failures(res.get("Failed", []), chunk)
+        result["Failed"].extend(failed)
         result["Successful"].extend(res.get("Successful", []))
+        Entries = retryable + Entries
 
     return result
+
+
+@overload
+def _divide_failures(
+    failed: List["BatchResultErrorEntryTypeDef"],
+    entries: Sequence["SendMessageBatchRequestEntryTypeDef"],
+) -> Tuple[
+    List["BatchResultErrorEntryTypeDef"],
+    List["SendMessageBatchRequestEntryTypeDef"],
+]:
+    ...  # pragma: no cover
+
+
+@overload
+def _divide_failures(
+    failed: List["BatchResultErrorEntryTypeDef"],
+    entries: Sequence["DeleteMessageBatchRequestEntryTypeDef"],
+) -> Tuple[
+    List["BatchResultErrorEntryTypeDef"],
+    List["DeleteMessageBatchRequestEntryTypeDef"],
+]:
+    ...  # pragma: no cover
+
+
+def _divide_failures(failed, entries):
+    """Helper to divide errors into retryable and non-retryable errors.
+
+    Args;
+        failed: list of failed batch operations
+        entries: list of entries passed to batch operation
+
+    Returns: tuple with (errors, retryable_entries) where errors contains
+        non-retryable batch result entries and retryable_entries contains
+        entries that can be retried.
+    """
+    if not failed:
+        return [], []
+
+    not_retryable: List["BatchResultErrorEntryTypeDef"] = []
+    retryable: List["SendMessageBatchRequestEntryTypeDef"] = []
+
+    entry_map = {entry["Id"]: entry for entry in entries}
+    for msg in failed:
+        if msg["SenderFault"]:
+            not_retryable.append(msg)
+        else:
+            retryable.append(entry_map[msg["Id"]])
+
+    return not_retryable, retryable
