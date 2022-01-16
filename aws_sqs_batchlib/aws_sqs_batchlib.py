@@ -1,6 +1,7 @@
 """Amazon SQS Batchlib"""
 
 import time
+import uuid
 from typing import List, Sequence, overload, Tuple, TYPE_CHECKING
 
 import boto3
@@ -59,6 +60,11 @@ def receive_message(
     receive_message() accepts the same arguments and has the same response
     structure as boto3 SQS receive_message() method.
 
+    If you provide a ReceiveRequestAttemptId, receive_message() generates
+    a unique ReceiveRequestAttemptId for each SQS request. If you do not
+    provide a ReceiveRequestAttemptId, receive_message() sends each SQS
+    request without ReceiveRequestAttemptId argument.
+
     Args:
         sqs_client: boto3 SQS client to use. Optional. Default: client created
                     with default session and configuration.
@@ -78,6 +84,8 @@ def receive_message(
     while time.time() - start < batching_window and len(batch) < batch_size:
         kwargs["WaitTimeSeconds"] = 1
         kwargs["MaxNumberOfMessages"] = min(batch_size - len(batch), 10)
+        if "ReceiveRequestAttemptId" in kwargs:
+            kwargs["ReceiveRequestAttemptId"] = str(uuid.uuid4())
         batch.extend(sqs_client.receive_message(**kwargs).get("Messages", []))
 
     return {"Messages": batch}
