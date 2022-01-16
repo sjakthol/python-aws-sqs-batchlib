@@ -67,6 +67,48 @@ def sqs_queue(request, monkeypatch, _setup_env):
         sqs.delete_queue(QueueUrl=queue_url)
 
 
+@pytest.fixture(params=[True, False], ids=("mocked queue", "real queue"))
+def fifo_queue(request, monkeypatch, _setup_env):
+    mocked = request.param
+    if mocked:
+        _fake_credentials(monkeypatch)
+    elif SKIP_INTEGRATION_TESTS:
+        pytest.skip("Unable to create real queues, skipping integration test")
+        return
+
+    sqs_mock_or_null = mock_sqs if mocked else contextlib.suppress
+    with sqs_mock_or_null():
+        queue_url = create_test_queue(fifo=True)
+        yield queue_url
+        sqs = boto3.client("sqs")
+        sqs.delete_queue(QueueUrl=queue_url)
+
+
+def read_messages(queue_url, num_messages, delete=True):
+    """Helper to read and delete N messages from SQS queue."""
+    sqsc = aws_sqs_batchlib.create_sqs_client()
+    messages = []
+    while len(messages) < num_messages:
+        # Read some messages
+        msgs = sqsc.receive_message(
+            QueueUrl=queue_url,
+            MaxNumberOfMessages=10,
+        ).get("Messages", [])
+
+        messages.extend(msgs)
+
+        if delete:
+            sqsc.delete_message_batch(
+                QueueUrl=queue_url,
+                Entries=[
+                    {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+                    for msg in msgs
+                ],
+            )
+
+    return messages
+
+
 @pytest.mark.parametrize(
     ["num_messages", "wait_time"], [(0, 1), (5, 5), (10, 10), (11, 11), (48, 15)]
 )
@@ -108,10 +150,7 @@ def test_delete(sqs_queue, num_messages):
     for i in range(num_messages):
         sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
 
-    batch = aws_sqs_batchlib.receive_message(
-        QueueUrl=sqs_queue, MaxNumberOfMessages=num_messages, WaitTimeSeconds=15
-    )
-    messages = batch["Messages"]
+    messages = read_messages(sqs_queue, num_messages, delete=False)
     assert len(messages) == num_messages
 
     delete_requests = [
@@ -189,11 +228,30 @@ def test_send(sqs_queue, num_messages):
     assert not resp["Failed"]
     assert len(resp["Successful"]) == num_messages
 
-    batch = aws_sqs_batchlib.receive_message(
-        QueueUrl=sqs_queue, MaxNumberOfMessages=num_messages, WaitTimeSeconds=15
-    )
-    messages = batch["Messages"]
+    messages = read_messages(sqs_queue, num_messages, delete=False)
     assert len(messages) == num_messages
+
+
+@pytest.mark.parametrize(["num_messages"], [(24,)])
+def test_send_fifo_retains_order(fifo_queue, num_messages):
+    resp = aws_sqs_batchlib.send_message_batch(
+        QueueUrl=fifo_queue,
+        Entries=[
+            {
+                "Id": f"{i}",
+                "MessageBody": f"{i}",
+                "MessageGroupId": "0",
+                "MessageDeduplicationId": f"{i}",
+            }
+            for i in range(num_messages)
+        ],
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
+
+    messages = read_messages(fifo_queue, num_messages, delete=True)
+    assert [msg["Body"] for msg in messages] == [str(i) for i in range(num_messages)]
 
 
 def test_send_retry_failures():
