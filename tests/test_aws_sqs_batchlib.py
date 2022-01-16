@@ -7,11 +7,15 @@ import boto3
 import botocore.exceptions
 from moto import mock_sqs
 import pytest
+from urllib3.exceptions import ProtocolError
 
 import aws_sqs_batchlib
 
 TEST_QUEUE_NAME_PREFIX = "aws-sqs-batchlib-testqueue"
 SKIP_INTEGRATION_TESTS = False
+
+QUEUE_MOCKED = "mocked queue"
+QUEUE_REAL = "real queue"
 
 
 @pytest.fixture(autouse=True)
@@ -27,7 +31,7 @@ def _fake_credentials(monkeypatch):
 
 
 def create_test_queue(fifo=False):
-    sqs = boto3.client("sqs")
+    sqs = aws_sqs_batchlib.create_sqs_client()
     try:
         if fifo:
             res = sqs.create_queue(
@@ -50,9 +54,9 @@ def create_test_queue(fifo=False):
     return res.get("QueueUrl")
 
 
-@pytest.fixture(params=[True, False], ids=("mocked queue", "real queue"))
+@pytest.fixture(params=[QUEUE_MOCKED, QUEUE_REAL])
 def sqs_queue(request, monkeypatch, _setup_env):
-    mocked = request.param
+    mocked = request.param == QUEUE_MOCKED
     if mocked:
         _fake_credentials(monkeypatch)
     elif SKIP_INTEGRATION_TESTS:
@@ -67,9 +71,9 @@ def sqs_queue(request, monkeypatch, _setup_env):
         sqs.delete_queue(QueueUrl=queue_url)
 
 
-@pytest.fixture(params=[True, False], ids=("mocked queue", "real queue"))
+@pytest.fixture(params=[QUEUE_MOCKED, QUEUE_REAL])
 def fifo_queue(request, monkeypatch, _setup_env):
-    mocked = request.param
+    mocked = request.param == QUEUE_MOCKED
     if mocked:
         _fake_credentials(monkeypatch)
     elif SKIP_INTEGRATION_TESTS:
@@ -142,6 +146,114 @@ def test_receive_leave_extra_messages(sqs_queue):
     )
     messages = batch["Messages"]
     assert len(messages) == 18
+
+
+@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], indirect=True)
+@pytest.mark.parametrize(["num_messages", "num_received"], [(0, 0), (5, 5), (11, 10)])
+def test_receive_fifo_one_message_groups(fifo_queue, num_messages, num_received):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(num_messages):
+        sqs.send_message(
+            QueueUrl=fifo_queue,
+            MessageBody=f"1-{i}",
+            MessageDeduplicationId=f"1-{i}",
+            MessageGroupId="1",
+        )
+
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=fifo_queue,
+        MaxNumberOfMessages=num_messages,
+        WaitTimeSeconds=1,
+    )
+
+    assert len(batch["Messages"]) == num_received
+
+
+@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], indirect=True)
+@pytest.mark.parametrize(["num_messages", "num_received"], [(0, 0), (5, 10), (11, 20)])
+def test_receive_fifo_multiple_message_groups(fifo_queue, num_messages, num_received):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for j in range(2):
+        for i in range(num_messages):
+            sqs.send_message(
+                QueueUrl=fifo_queue,
+                MessageBody=f"{j}-{i}",
+                MessageDeduplicationId=f"{j}-{i}",
+                MessageGroupId=f"{j}",
+            )
+
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=fifo_queue,
+        MaxNumberOfMessages=num_messages * 2,
+        WaitTimeSeconds=1,
+    )
+
+    assert len(batch["Messages"]) == num_received
+
+    if num_received:
+        included_groups = {msg["Body"].split("-")[0] for msg in batch["Messages"]}
+        assert included_groups == {"0", "1"}, "got messages from two message groups"
+
+
+@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], ids=["real queue"], indirect=True)
+def test_receive_fifo_retry_with_attempt_id(fifo_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(2):
+        sqs.send_message(
+            QueueUrl=fifo_queue,
+            MessageBody=f"{i}",
+            MessageDeduplicationId=f"{i}",
+            MessageGroupId="0",
+        )
+
+    with unittest.mock.patch(
+        "botocore.awsrequest.AWSResponse",
+        side_effect=[ProtocolError()] + [unittest.mock.DEFAULT] * 100,
+        wraps=botocore.awsrequest.AWSResponse,
+    ):
+        batch = aws_sqs_batchlib.receive_message(
+            QueueUrl=fifo_queue,
+            ReceiveRequestAttemptId="attempt-1",
+            MaxNumberOfMessages=15,
+            WaitTimeSeconds=2,
+            VisibilityTimeout=30,
+            sqs_client=sqs,
+        )
+
+    # Two messages received as the retry after first failure had the same
+    # ReceiveRequestAttemptId (response to first request was replayed by
+    # SQS)
+    assert len(batch["Messages"]) == 2
+
+
+@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], ids=["real queue"], indirect=True)
+def test_receive_fifo_retry_without_attempt_id(fifo_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(2):
+        sqs.send_message(
+            QueueUrl=fifo_queue,
+            MessageBody=f"{i}",
+            MessageDeduplicationId=f"{i}",
+            MessageGroupId="0",
+        )
+
+    with unittest.mock.patch(
+        "botocore.awsrequest.AWSResponse",
+        side_effect=[ProtocolError()] + [unittest.mock.DEFAULT] * 100,
+        wraps=botocore.awsrequest.AWSResponse,
+    ):
+        batch = aws_sqs_batchlib.receive_message(
+            QueueUrl=fifo_queue,
+            MaxNumberOfMessages=15,
+            WaitTimeSeconds=2,
+            VisibilityTimeout=30,
+            sqs_client=sqs,
+        )
+
+    # No messages received as the retry after first failure had different
+    # ReceiveRequestAttemptId (response to first request was not replayed
+    # by SQS)
+    assert not batch["Messages"]
 
 
 @pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,), (11,)])
