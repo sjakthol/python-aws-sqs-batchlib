@@ -40,15 +40,20 @@ if TYPE_CHECKING:  # pragma: no cover
     )
 
 
-def create_sqs_client() -> "SQSClient":
-    """Create default SQS client."""
-    session = boto3.session.Session()
+def create_sqs_client(session: boto3.Session = None) -> "SQSClient":
+    """Create default SQS client.
+
+    Args:
+        session: boto3 Session to use for creating SQS client. Optional.
+                 Default: boto3 default session.
+    """
+    session = session or boto3.Session()
     region = session.region_name
     return boto3.client("sqs", endpoint_url=f"https://sqs.{region}.amazonaws.com")
 
 
 def receive_message(
-    sqs_client: "SQSClient" = None, **kwargs
+    sqs_client: "SQSClient" = None, session: boto3.Session = None, **kwargs
 ) -> "ReceiveMessageResultTypeDef":
     """Receive an arbitrary number of messages from an Amazon SQS queue.
 
@@ -68,13 +73,15 @@ def receive_message(
     Args:
         sqs_client: boto3 SQS client to use. Optional. Default: client created
                     with default session and configuration.
+        session: boto3 Session to use for creating SQS client if sqs_client is
+                 not provided. Optional. Default: boto3 default session.
         **kwargs: keyword arguments to pass to boto3 SQS receive_message()
                   method
 
     Returns:
         SQS messages similar to boto3 SQS receive_message() method.
     """
-    sqs_client = sqs_client or create_sqs_client()
+    sqs_client = sqs_client or create_sqs_client(session)
 
     batch_size = kwargs.get("MaxNumberOfMessages", 1)
     batching_window = kwargs.get("WaitTimeSeconds", 1)
@@ -97,6 +104,7 @@ def delete_message_batch(
         "DeleteMessageBatchRequestEntryTypeDef"
     ],  # pylint: disable=invalid-name
     sqs_client: "SQSClient" = None,
+    session: boto3.Session = None,
 ) -> "DeleteMessageBatchResultTypeDef":
     """Delete an arbitrary number of messages from an Amazon SQS queue.
 
@@ -111,11 +119,12 @@ def delete_message_batch(
         Entries: A list of receipt handles for the messages to be deleted.
         sqs_client: boto3 SQS client to use. Optional. Default: client created
                     with default session and configuration.
-
+        session: boto3 Session to use for creating SQS client if sqs_client is
+                 not provided. Optional. Default: boto3 default session.
     Returns:
         Results similar to boto3 SQS delete_message_batch() method.
     """
-    sqs_client = sqs_client or create_sqs_client()
+    sqs_client = sqs_client or create_sqs_client(session)
     result: "DeleteMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
 
     while Entries:
@@ -136,6 +145,7 @@ def send_message_batch(
         "SendMessageBatchRequestEntryTypeDef"
     ],
     sqs_client: "SQSClient" = None,
+    session: boto3.Session = None,
 ) -> "SendMessageBatchResultTypeDef":
     """Send an arbitrary number of messages to an Amazon SQS queue.
 
@@ -152,11 +162,13 @@ def send_message_batch(
                  SQS.
         sqs_client: boto3 SQS client to use. Optional. Default: client created
                     with default session and configuration.
+        session: boto3 Session to use for creating SQS client if sqs_client is
+                 not provided. Optional. Default: boto3 default session.
 
     Returns:
         Results similar to boto3 SQS send_message_batch() method.
     """
-    sqs_client = sqs_client or create_sqs_client()
+    sqs_client = sqs_client or create_sqs_client(session)
     result: "SendMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
 
     while Entries:

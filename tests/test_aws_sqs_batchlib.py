@@ -148,6 +148,28 @@ def test_receive_leave_extra_messages(sqs_queue):
     assert len(messages) == 18
 
 
+def test_receive_custom_session(sqs_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(4):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue, session=boto3.Session(region_name="eu-north-1")
+    )
+
+
+def test_receive_custom_session_and_client(sqs_queue):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(4):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    aws_sqs_batchlib.receive_message(
+        QueueUrl=sqs_queue,
+        session=boto3.Session(region_name="eu-west-1"),
+        sqs_client=sqs,
+    )
+
+
 @pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], indirect=True)
 @pytest.mark.parametrize(["num_messages", "num_received"], [(0, 0), (5, 5), (11, 10)])
 def test_receive_fifo_one_message_groups(fifo_queue, num_messages, num_received):
@@ -277,6 +299,51 @@ def test_delete(sqs_queue, num_messages):
     assert len(resp["Successful"]) == num_messages
 
 
+def test_delete_custom_session(sqs_queue):
+    num_messages = 10
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(num_messages):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    messages = read_messages(sqs_queue, num_messages, delete=False)
+
+    delete_requests = [
+        {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+        for msg in messages
+    ]
+    resp = aws_sqs_batchlib.delete_message_batch(
+        QueueUrl=sqs_queue,
+        Entries=delete_requests,
+        session=boto3.Session(region_name="eu-north-1"),
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
+
+
+def test_delete_custom_session_and_client(sqs_queue):
+    num_messages = 10
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(num_messages):
+        sqs.send_message(QueueUrl=sqs_queue, MessageBody=str(i))
+
+    messages = read_messages(sqs_queue, num_messages, delete=False)
+
+    delete_requests = [
+        {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+        for msg in messages
+    ]
+    resp = aws_sqs_batchlib.delete_message_batch(
+        QueueUrl=sqs_queue,
+        Entries=delete_requests,
+        session=boto3.Session(region_name="eu-west-1"),  # wrong region
+        sqs_client=sqs,
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
+
+
 def test_delete_client_retry_failures():
     client_mock = unittest.mock.Mock(spec=boto3.client("sqs"))
     client_mock.delete_message_batch.side_effect = [
@@ -361,7 +428,7 @@ def test_delete_fifo_one_message_group(fifo_queue, num_messages):
     assert len(resp["Successful"]) == num_messages
 
 
-@pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,)])
+@pytest.mark.parametrize(["num_messages"], [(5,), (10,)])
 def test_delete_fifo_multiple_message_groups(fifo_queue, num_messages):
     sqs = aws_sqs_batchlib.create_sqs_client()
     for j in range(2):
@@ -405,6 +472,33 @@ def test_send(sqs_queue, num_messages):
 
     messages = read_messages(sqs_queue, num_messages, delete=False)
     assert len(messages) == num_messages
+
+
+def test_send_custom_session(sqs_queue):
+    num_messages = 10
+    resp = aws_sqs_batchlib.send_message_batch(
+        QueueUrl=sqs_queue,
+        Entries=[{"Id": f"{i}", "MessageBody": f"{i}"} for i in range(num_messages)],
+        session=boto3.Session(region_name="eu-north-1"),
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
+
+
+def test_send_custom_session_and_client(sqs_queue):
+    num_messages = 10
+    resp = aws_sqs_batchlib.send_message_batch(
+        QueueUrl=sqs_queue,
+        Entries=[{"Id": f"{i}", "MessageBody": f"{i}"} for i in range(num_messages)],
+        session=boto3.Session(
+            region_name="eu-west-1"
+        ),  # session has wrong region, client is used
+        sqs_client=aws_sqs_batchlib.create_sqs_client(),
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
 
 
 @pytest.mark.parametrize(["num_messages"], [(24,)])
