@@ -330,6 +330,69 @@ def test_delete_client_retry_failures():
     }
 
 
+@pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,)])
+def test_delete_fifo_one_message_group(fifo_queue, num_messages):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for i in range(num_messages):
+        sqs.send_message(
+            QueueUrl=fifo_queue,
+            MessageBody=f"1-{i}",
+            MessageDeduplicationId=f"1-{i}",
+            MessageGroupId="1",
+        )
+
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=fifo_queue,
+        MaxNumberOfMessages=num_messages,
+        WaitTimeSeconds=1,
+    )
+
+    assert len(batch["Messages"]) == num_messages
+
+    resp = aws_sqs_batchlib.delete_message_batch(
+        QueueUrl=fifo_queue,
+        Entries=[
+            {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+            for msg in batch["Messages"]
+        ],
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages
+
+
+@pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,)])
+def test_delete_fifo_multiple_message_groups(fifo_queue, num_messages):
+    sqs = aws_sqs_batchlib.create_sqs_client()
+    for j in range(2):
+        for i in range(num_messages):
+            sqs.send_message(
+                QueueUrl=fifo_queue,
+                MessageBody=f"{j}-{i}",
+                MessageDeduplicationId=f"{j}-{i}",
+                MessageGroupId=f"{j}",
+            )
+
+    batch = aws_sqs_batchlib.receive_message(
+        QueueUrl=fifo_queue,
+        MaxNumberOfMessages=num_messages * 2,
+        WaitTimeSeconds=1,
+    )
+
+    assert len(batch["Messages"]) == num_messages * 2
+
+    resp = aws_sqs_batchlib.delete_message_batch(
+        QueueUrl=fifo_queue,
+        Entries=[
+            {"Id": msg["MessageId"], "ReceiptHandle": msg["ReceiptHandle"]}
+            for msg in batch["Messages"]
+        ],
+    )
+
+    assert not resp["Failed"]
+    assert len(resp["Successful"]) == num_messages * 2
+
+
 @pytest.mark.parametrize(["num_messages"], [(0,), (5,), (10,), (11,)])
 def test_send(sqs_queue, num_messages):
     resp = aws_sqs_batchlib.send_message_batch(
