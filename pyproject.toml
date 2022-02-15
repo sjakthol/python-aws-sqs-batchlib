@@ -20,7 +20,7 @@ pyformance = "^0.4"
 pylint = "^2.12.2"
 pytest = "^7.0.1"
 pytest-cov = "^3.0.0"
-typing-extensions = "^4.0.1"
+typing-extensions = "^4.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
