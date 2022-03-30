@@ -100,9 +100,9 @@ def receive_message(
 
 def delete_message_batch(
     QueueUrl: str,  # pylint: disable=invalid-name
-    Entries: List[
+    Entries: List[  # pylint: disable=invalid-name
         "DeleteMessageBatchRequestEntryTypeDef"
-    ],  # pylint: disable=invalid-name
+    ],
     sqs_client: "SQSClient" = None,
     session: boto3.Session = None,
 ) -> "DeleteMessageBatchResultTypeDef":
