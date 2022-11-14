@@ -2,7 +2,7 @@
 
 import time
 import uuid
-from typing import List, Sequence, overload, Tuple, TYPE_CHECKING
+from typing import List, Optional, Sequence, overload, Tuple, TYPE_CHECKING
 
 import boto3
 import boto3.session
@@ -41,7 +41,7 @@ if TYPE_CHECKING:  # pragma: no cover
     )
 
 
-def create_sqs_client(session: boto3.session.Session = None) -> "SQSClient":
+def create_sqs_client(session: Optional[boto3.session.Session] = None) -> "SQSClient":
     """Create default SQS client.
 
     Args:
@@ -54,7 +54,9 @@ def create_sqs_client(session: boto3.session.Session = None) -> "SQSClient":
 
 
 def receive_message(
-    sqs_client: "SQSClient" = None, session: boto3.session.Session = None, **kwargs
+    sqs_client: Optional["SQSClient"] = None,
+    session: Optional[boto3.session.Session] = None,
+    **kwargs,
 ) -> "ReceiveMessageResultTypeDef":
     """Receive an arbitrary number of messages from an Amazon SQS queue.
 
@@ -104,8 +106,8 @@ def delete_message_batch(
     Entries: List[  # pylint: disable=invalid-name
         "DeleteMessageBatchRequestEntryTypeDef"
     ],
-    sqs_client: "SQSClient" = None,
-    session: boto3.session.Session = None,
+    sqs_client: Optional["SQSClient"] = None,
+    session: Optional[boto3.session.Session] = None,
 ) -> "DeleteMessageBatchResultTypeDef":
     """Delete an arbitrary number of messages from an Amazon SQS queue.
 
@@ -145,8 +147,8 @@ def send_message_batch(
     Entries: List[  # pylint: disable=invalid-name
         "SendMessageBatchRequestEntryTypeDef"
     ],
-    sqs_client: "SQSClient" = None,
-    session: boto3.session.Session = None,
+    sqs_client: Optional["SQSClient"] = None,
+    session: Optional[boto3.session.Session] = None,
 ) -> "SendMessageBatchResultTypeDef":
     """Send an arbitrary number of messages to an Amazon SQS queue.
 
