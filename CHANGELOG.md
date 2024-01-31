@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0 - 2024-01-31
+
+### Changed
+
+* **Breaking:** Drop Python 3.7 support. Minimum supported Python version is Python 3.8
+
+**All Changes**: https://github.com/sjakthol/python-aws-sqs-batchlib/compare/v2.0.0...v3.0.0
+
 ## 2.0.0 - 2022-01-16
 
 ### Changed

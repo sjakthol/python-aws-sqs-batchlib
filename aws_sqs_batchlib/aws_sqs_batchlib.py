@@ -193,8 +193,7 @@ def _divide_failures(
 ) -> Tuple[
     List["BatchResultErrorEntryTypeDef"],
     List["SendMessageBatchRequestEntryTypeDef"],
-]:
-    ...  # pragma: no cover
+]: ...  # pragma: no cover
 
 
 @overload
@@ -204,8 +203,7 @@ def _divide_failures(
 ) -> Tuple[
     List["BatchResultErrorEntryTypeDef"],
     List["DeleteMessageBatchRequestEntryTypeDef"],
-]:
-    ...  # pragma: no cover
+]: ...  # pragma: no cover
 
 
 def _divide_failures(failed, entries):

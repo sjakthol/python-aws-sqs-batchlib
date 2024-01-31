@@ -1,11 +1,12 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,redefined-outer-name
 import contextlib
+import importlib.metadata
 import unittest.mock
 import uuid
 
 import boto3
 import botocore.exceptions
-from moto import mock_sqs
+from moto import mock_aws
 import pytest
 from urllib3.exceptions import ProtocolError
 
@@ -63,7 +64,7 @@ def sqs_queue(request, monkeypatch, _setup_env):
         pytest.skip("Unable to create real queues, skipping integration test")
         return
 
-    sqs_mock_or_null = mock_sqs if mocked else contextlib.suppress
+    sqs_mock_or_null = mock_aws if mocked else contextlib.suppress
     with sqs_mock_or_null():
         queue_url = create_test_queue()
         yield queue_url
@@ -80,7 +81,7 @@ def fifo_queue(request, monkeypatch, _setup_env):
         pytest.skip("Unable to create real queues, skipping integration test")
         return
 
-    sqs_mock_or_null = mock_sqs if mocked else contextlib.suppress
+    sqs_mock_or_null = mock_aws if mocked else contextlib.suppress
     with sqs_mock_or_null():
         queue_url = create_test_queue(fifo=True)
         yield queue_url
@@ -574,3 +575,10 @@ def test_send_retry_failures():
             }
         ],
     }
+
+
+def test_version():
+    """Test that version is set correctly."""
+    assert (
+        importlib.metadata.version("aws-sqs-batchlib") == aws_sqs_batchlib.__version__
+    )
