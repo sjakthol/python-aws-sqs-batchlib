@@ -18,7 +18,7 @@ moto = {extras = ["sqs"], version = "^5.0"}
 mypy = "^1.8.0"
 pyformance = "^0.4"
 pylint = "^3.0.3"
-pytest = "^8.0.0"
+pytest = "^8.0.1"
 pytest-cov = "^4.1"
 typing-extensions = "^4.7"
 
