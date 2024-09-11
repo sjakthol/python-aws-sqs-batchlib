@@ -6,8 +6,8 @@ import uuid
 
 import boto3
 import botocore.exceptions
-from moto import mock_aws
 import pytest
+from moto import mock_aws
 from urllib3.exceptions import ProtocolError
 
 import aws_sqs_batchlib
