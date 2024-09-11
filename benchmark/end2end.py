@@ -6,8 +6,9 @@ import json
 import logging
 import time
 
-import aws_sqs_batchlib
 import boto3
+
+import aws_sqs_batchlib
 
 
 @contextlib.contextmanager

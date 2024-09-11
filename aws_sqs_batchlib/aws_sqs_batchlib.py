@@ -2,7 +2,7 @@
 
 import time
 import uuid
-from typing import List, Optional, Sequence, overload, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple, overload
 
 import boto3
 import boto3.session
