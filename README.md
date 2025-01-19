@@ -137,12 +137,9 @@ assert res == {
 
 ## Development
 
-Requires Python 3 and Poetry. Useful commands:
+Requires Python 3 and uv. Useful commands:
 
 ```bash
-# Setup environment
-poetry install
-
 # Run tests (integration test requires rights to create, delete and use DynamoDB tables)
 make test
 
@@ -155,7 +152,7 @@ make format
 
 ## Benchmarks & Manual Testing
 
-Use `benchmark/end2end.py` to benchmark and test the library functionality and performance. Execute following commands in Poetry virtualenv (execute `poetry shell` to get there):
+Use `benchmark/end2end.py` to benchmark and test the library functionality and performance. Execute following commands in project virtualenv:
 
 ```bash
 # Setup
@@ -163,7 +160,7 @@ export PYTHONPATH=$(pwd)
 export AWS_DEFAULT_REGION=eu-north-1
 
 # Send, receive and delete 512 messages, run test 5 times
-python3 benchmark/end2end.py \
+uv run benchmark/end2end.py \
   --queue-url https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue --num-messages 512 --iterations 5
 ```
 
