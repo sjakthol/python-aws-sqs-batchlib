@@ -4,7 +4,6 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-enable-beta-ecosystems: true
 updates:
   - package-ecosystem: "uv" # See documentation for possible values
     directory: "/" # Location of package manifests
@@ -12,11 +11,6 @@ updates:
       interval: "weekly"
       day: "sunday"
     open-pull-requests-limit: 20
-    groups:
-      production-dependencies:
-        dependency-type: "production"
-      development-dependencies:
-        dependency-type: "development"
   # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
   - package-ecosystem: "github-actions"
     directory: "/"
