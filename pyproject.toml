@@ -7,13 +7,14 @@ authors = [
 ]
 license = "MIT"
 readme = 'README.md'
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   "boto3"
 ]
 
-[tool.uv]
-dev-dependencies = [
+
+[dependency-groups]
+dev = [
   "bandit",
   "boto3-stubs[sqs]",
   "moto[sqs]",
