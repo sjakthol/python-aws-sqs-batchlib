@@ -10,10 +10,10 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    groups:
-      python:
-        patterns:
-        - "*"
+    #groups:
+    #  python:
+    #    patterns:
+    #    - "*"
     allow:
     - dependency-type: all
   # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
