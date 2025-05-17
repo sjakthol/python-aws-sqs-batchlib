@@ -5,17 +5,11 @@
 
 version: 2
 updates:
-  - package-ecosystem: uv
-    directory: /
+  - package-ecosystem: "uv" # See documentation for possible values
+    directory: "/" # Location of package manifests
     schedule:
-      interval: monthly
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
-    groups:
-      dev-dependencies:
-        applies-to: version-updates
-        dependency-type: development
+      interval: "weekly"
+      day: "sunday"
   # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
   - package-ecosystem: "github-actions"
     directory: "/"
