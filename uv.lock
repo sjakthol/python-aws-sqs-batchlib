@@ -28,19 +28,19 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "boto3", specifier = ">=1.38.8,<2" }]
+requires-dist = [{ name = "boto3", specifier = "<2" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "bandit" },
-    { name = "boto3-stubs", extras = ["sqs"] },
-    { name = "moto", extras = ["sqs"] },
-    { name = "mypy" },
-    { name = "pyformance" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "typing-extensions" },
+    { name = "bandit", specifier = ">=1.8.3,<2" },
+    { name = "boto3-stubs", extras = ["sqs"], specifier = "<2" },
+    { name = "moto", extras = ["sqs"], specifier = ">=5.1.4,<6" },
+    { name = "mypy", specifier = ">=1.15.0,<2" },
+    { name = "pyformance", specifier = ">=0.4,<1" },
+    { name = "pytest", specifier = ">=8.3.5,<9" },
+    { name = "pytest-cov", specifier = ">=6.1.1,<7" },
+    { name = "ruff", specifier = ">=0.11.8,<1" },
+    { name = "typing-extensions", specifier = ">=4.13.2,<5" },
 ]
 
 [[package]]
@@ -859,11 +859,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "80.3.0"
+version = "80.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/51/6c/a3f892949418b5b9aced7396919c75ffb57e38f08b712b565f5eb10677ee/setuptools-80.3.0.tar.gz", hash = "sha256:ec8308eb180b2312062b1c5523204acf872cd8b0a9e6c2ae76431b22bc4065d7", size = 1314475, upload-time = "2025-05-03T09:17:32.334Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/d2/ec1acaaff45caed5c2dedb33b67055ba9d4e96b091094df90762e60135fe/setuptools-80.8.0.tar.gz", hash = "sha256:49f7af965996f26d43c8ae34539c8d99c5042fbff34302ea151eaa9c207cd257", size = 1319720, upload-time = "2025-05-20T14:02:53.503Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/61/a6239ff35d64e55def020335626894895847cc6659c0f8e1b676c58aad3b/setuptools-80.3.0-py3-none-any.whl", hash = "sha256:a65cffc4fb86167e3020b3ef58e08226baad8b29a3b34ce2c9d07e901bac481d", size = 1200273, upload-time = "2025-05-03T09:17:29.995Z" },
+    { url = "https://files.pythonhosted.org/packages/58/29/93c53c098d301132196c3238c312825324740851d77a8500a2462c0fd888/setuptools-80.8.0-py3-none-any.whl", hash = "sha256:95a60484590d24103af13b686121328cc2736bee85de8936383111e421b9edc0", size = 1201470, upload-time = "2025-05-20T14:02:51.348Z" },
 ]
 
 [[package]]
