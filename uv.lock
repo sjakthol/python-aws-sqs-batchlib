@@ -32,15 +32,15 @@ requires-dist = [{ name = "boto3", specifier = "<2" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "bandit", specifier = ">=1.8.3,<2" },
-    { name = "boto3-stubs", extras = ["sqs"], specifier = "<2" },
-    { name = "moto", extras = ["sqs"], specifier = ">=5.1.4,<6" },
-    { name = "mypy", specifier = ">=1.15.0,<2" },
-    { name = "pyformance", specifier = ">=0.4,<1" },
-    { name = "pytest", specifier = ">=8.3.5,<9" },
-    { name = "pytest-cov", specifier = ">=6.1.1,<7" },
-    { name = "ruff", specifier = ">=0.11.8,<1" },
-    { name = "typing-extensions", specifier = ">=4.13.2,<5" },
+    { name = "bandit" },
+    { name = "boto3-stubs", extras = ["sqs"] },
+    { name = "moto", extras = ["sqs"] },
+    { name = "mypy" },
+    { name = "pyformance" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "typing-extensions" },
 ]
 
 [[package]]
