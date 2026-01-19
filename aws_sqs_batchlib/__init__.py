@@ -1,6 +1,6 @@
 """Amazon SQS Batchlib"""
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 
 from .aws_sqs_batchlib import (
     create_sqs_client,
