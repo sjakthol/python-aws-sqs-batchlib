@@ -171,7 +171,6 @@ def test_receive_custom_session_and_client(sqs_queue):
     )
 
 
-@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], indirect=True)
 @pytest.mark.parametrize(["num_messages", "num_received"], [(0, 0), (5, 5), (11, 10)])
 def test_receive_fifo_one_message_groups(fifo_queue, num_messages, num_received):
     sqs = aws_sqs_batchlib.create_sqs_client()
@@ -192,7 +191,6 @@ def test_receive_fifo_one_message_groups(fifo_queue, num_messages, num_received)
     assert len(batch["Messages"]) == num_received
 
 
-@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], indirect=True)
 @pytest.mark.parametrize(["num_messages", "num_received"], [(0, 0), (5, 10), (11, 20)])
 def test_receive_fifo_multiple_message_groups(fifo_queue, num_messages, num_received):
     sqs = aws_sqs_batchlib.create_sqs_client()
@@ -218,7 +216,6 @@ def test_receive_fifo_multiple_message_groups(fifo_queue, num_messages, num_rece
         assert included_groups == {"0", "1"}, "got messages from two message groups"
 
 
-@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], ids=["real queue"], indirect=True)
 def test_receive_fifo_retry_with_attempt_id(fifo_queue):
     sqs = aws_sqs_batchlib.create_sqs_client()
     for i in range(2):
@@ -249,7 +246,7 @@ def test_receive_fifo_retry_with_attempt_id(fifo_queue):
     assert len(batch["Messages"]) == 2
 
 
-@pytest.mark.parametrize("fifo_queue", [QUEUE_REAL], ids=["real queue"], indirect=True)
+@pytest.mark.skip("moto does not work the same way as real sqs here")
 def test_receive_fifo_retry_without_attempt_id(fifo_queue):
     sqs = aws_sqs_batchlib.create_sqs_client()
     for i in range(2):
