@@ -2,7 +2,8 @@
 
 import time
 import uuid
-from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple, overload
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Optional, overload
 
 import boto3
 import boto3.session
@@ -21,27 +22,27 @@ if TYPE_CHECKING:  # pragma: no cover
 
     ReceiveMessageResultTypeDef = TypedDict(
         "ReceiveMessageResultTypeDef",
-        {"Messages": List["MessageTypeDef"]},
+        {"Messages": list["MessageTypeDef"]},
     )
 
     DeleteMessageBatchResultTypeDef = TypedDict(
         "DeleteMessageBatchResultTypeDef",
         {
-            "Successful": List["DeleteMessageBatchResultEntryTypeDef"],
-            "Failed": List["BatchResultErrorEntryTypeDef"],
+            "Successful": list["DeleteMessageBatchResultEntryTypeDef"],
+            "Failed": list["BatchResultErrorEntryTypeDef"],
         },
     )
 
     SendMessageBatchResultTypeDef = TypedDict(
         "SendMessageBatchResultTypeDef",
         {
-            "Successful": List["SendMessageBatchResultEntryTypeDef"],
-            "Failed": List["BatchResultErrorEntryTypeDef"],
+            "Successful": list["SendMessageBatchResultEntryTypeDef"],
+            "Failed": list["BatchResultErrorEntryTypeDef"],
         },
     )
 
 
-def create_sqs_client(session: Optional[boto3.session.Session] = None) -> "SQSClient":
+def create_sqs_client(session: boto3.session.Session | None = None) -> "SQSClient":
     """Create default SQS client.
 
     Args:
@@ -55,7 +56,7 @@ def create_sqs_client(session: Optional[boto3.session.Session] = None) -> "SQSCl
 
 def receive_message(
     sqs_client: Optional["SQSClient"] = None,
-    session: Optional[boto3.session.Session] = None,
+    session: boto3.session.Session | None = None,
     **kwargs,
 ) -> "ReceiveMessageResultTypeDef":
     """Receive an arbitrary number of messages from an Amazon SQS queue.
@@ -89,7 +90,7 @@ def receive_message(
     batch_size = kwargs.get("MaxNumberOfMessages", 1)
     batching_window = kwargs.get("WaitTimeSeconds", 1)
 
-    batch: List["MessageTypeDef"] = []
+    batch: list[MessageTypeDef] = []
     start = time.time()
     while time.time() - start < batching_window and len(batch) < batch_size:
         kwargs["WaitTimeSeconds"] = 1
@@ -103,11 +104,11 @@ def receive_message(
 
 def delete_message_batch(
     QueueUrl: str,  # pylint: disable=invalid-name
-    Entries: List[  # pylint: disable=invalid-name
+    Entries: list[  # pylint: disable=invalid-name
         "DeleteMessageBatchRequestEntryTypeDef"
     ],
     sqs_client: Optional["SQSClient"] = None,
-    session: Optional[boto3.session.Session] = None,
+    session: boto3.session.Session | None = None,
 ) -> "DeleteMessageBatchResultTypeDef":
     """Delete an arbitrary number of messages from an Amazon SQS queue.
 
@@ -128,7 +129,7 @@ def delete_message_batch(
         Results similar to boto3 SQS delete_message_batch() method.
     """
     sqs_client = sqs_client or create_sqs_client(session)
-    result: "DeleteMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
+    result: DeleteMessageBatchResultTypeDef = {"Successful": [], "Failed": []}
 
     while Entries:
         chunk, Entries = Entries[:10], Entries[10:]
@@ -144,11 +145,11 @@ def delete_message_batch(
 
 def send_message_batch(
     QueueUrl: str,  # pylint: disable=invalid-name
-    Entries: List[  # pylint: disable=invalid-name
+    Entries: list[  # pylint: disable=invalid-name
         "SendMessageBatchRequestEntryTypeDef"
     ],
     sqs_client: Optional["SQSClient"] = None,
-    session: Optional[boto3.session.Session] = None,
+    session: boto3.session.Session | None = None,
 ) -> "SendMessageBatchResultTypeDef":
     """Send an arbitrary number of messages to an Amazon SQS queue.
 
@@ -172,7 +173,7 @@ def send_message_batch(
         Results similar to boto3 SQS send_message_batch() method.
     """
     sqs_client = sqs_client or create_sqs_client(session)
-    result: "SendMessageBatchResultTypeDef" = {"Successful": [], "Failed": []}
+    result: SendMessageBatchResultTypeDef = {"Successful": [], "Failed": []}
 
     while Entries:
         chunk, Entries = Entries[:10], Entries[10:]
@@ -188,21 +189,21 @@ def send_message_batch(
 
 @overload
 def _divide_failures(
-    failed: List["BatchResultErrorEntryTypeDef"],
+    failed: list["BatchResultErrorEntryTypeDef"],
     entries: Sequence["SendMessageBatchRequestEntryTypeDef"],
-) -> Tuple[
-    List["BatchResultErrorEntryTypeDef"],
-    List["SendMessageBatchRequestEntryTypeDef"],
+) -> tuple[
+    list["BatchResultErrorEntryTypeDef"],
+    list["SendMessageBatchRequestEntryTypeDef"],
 ]: ...  # pragma: no cover
 
 
 @overload
 def _divide_failures(
-    failed: List["BatchResultErrorEntryTypeDef"],
+    failed: list["BatchResultErrorEntryTypeDef"],
     entries: Sequence["DeleteMessageBatchRequestEntryTypeDef"],
-) -> Tuple[
-    List["BatchResultErrorEntryTypeDef"],
-    List["DeleteMessageBatchRequestEntryTypeDef"],
+) -> tuple[
+    list["BatchResultErrorEntryTypeDef"],
+    list["DeleteMessageBatchRequestEntryTypeDef"],
 ]: ...  # pragma: no cover
 
 
@@ -220,8 +221,8 @@ def _divide_failures(failed, entries):
     if not failed:
         return [], []
 
-    not_retryable: List["BatchResultErrorEntryTypeDef"] = []
-    retryable: List["SendMessageBatchRequestEntryTypeDef"] = []
+    not_retryable: list[BatchResultErrorEntryTypeDef] = []
+    retryable: list[SendMessageBatchRequestEntryTypeDef] = []
 
     entry_map = {entry["Id"]: entry for entry in entries}
     for msg in failed:

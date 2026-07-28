@@ -10,6 +10,8 @@ import boto3
 
 import aws_sqs_batchlib
 
+logger = logging.getLogger("test")
+
 
 @contextlib.contextmanager
 def stopwatch():
@@ -62,7 +64,7 @@ def run_iteration(args, i, sqsc):
         )
     send_time = get_elapsed_time()
     send_per_second = len(resp["Successful"]) / send_time
-    logging.info(
+    logger.info(
         "[Run=%i] Sent %i messages in %03f seconds (%i / second; %i failed)",
         i,
         len(resp["Successful"]),
@@ -80,7 +82,7 @@ def run_iteration(args, i, sqsc):
         )
     receive_time = get_elapsed_time()
     receive_per_second = len(resp["Messages"]) / receive_time
-    logging.info(
+    logger.info(
         "[Run=%i] Received %i messages in %03f seconds (%i / second)",
         i,
         len(resp["Messages"]),
@@ -99,7 +101,7 @@ def run_iteration(args, i, sqsc):
         )
     delete_time = get_elapsed_time()
     delete_per_second = len(resp["Successful"]) / delete_time
-    logging.info(
+    logger.info(
         "[Run=%i] Deleted %i messages in %03f seconds (%i / second; %i failed)",
         i,
         len(resp["Successful"]),
@@ -129,7 +131,7 @@ def main():
     stats["receive"].sort()
     stats["send"].sort()
 
-    logging.info("Stats: %s", json.dumps(stats, indent=2))
+    logger.info("Stats: %s", json.dumps(stats, indent=2))
 
 
 if __name__ == "__main__":
