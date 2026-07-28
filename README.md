@@ -48,7 +48,7 @@ import aws_sqs_batchlib
 # Receive up-to 100 messages from the given queue, polling the queue for
 # up-to 15 seconds to fill the batch.
 res = aws_sqs_batchlib.receive_message(
-    QueueUrl = "https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
+    QueueUrl="https://sqs.eu-north-1.amazonaws.com/123456789012/MyQueue",
     MaxNumberOfMessages=100,
     WaitTimeSeconds=15,
 )
@@ -56,9 +56,19 @@ res = aws_sqs_batchlib.receive_message(
 # Returns messages in the same format as boto3 / botocore SQS Client
 # receive_message() method.
 assert res == {
-    'Messages': [
-        {'MessageId': '[.]', 'ReceiptHandle': 'AQ[.]JA==', 'MD5OfBody': '[.]', 'Body': '[.]'},
-        {'MessageId': '[.]', 'ReceiptHandle': 'AQ[.]wA==', 'MD5OfBody': '[.]', 'Body': '[.]'}
+    "Messages": [
+        {
+            "MessageId": "[.]",
+            "ReceiptHandle": "AQ[.]JA==",
+            "MD5OfBody": "[.]",
+            "Body": "[.]",
+        },
+        {
+            "MessageId": "[.]",
+            "ReceiptHandle": "AQ[.]wA==",
+            "MD5OfBody": "[.]",
+            "Body": "[.]",
+        },
         # ... up-to 100 messages
     ]
 }

@@ -365,7 +365,7 @@ def test_delete_client_retry_failures():
         {"Successful": [{"Id": "1"}, {"Id": "10"}]},
     ]
 
-    delete_requests = [{"Id": f"{i}", "ReceiptHandle": f"{i}"} for i in range(0, 11)]
+    delete_requests = [{"Id": f"{i}", "ReceiptHandle": f"{i}"} for i in range(11)]
 
     resp = aws_sqs_batchlib.delete_message_batch(
         QueueUrl=sqs_queue, Entries=delete_requests, sqs_client=client_mock
@@ -544,7 +544,7 @@ def test_send_retry_failures():
         {"Successful": [{"Id": "1"}, {"Id": "10"}]},
     ]
 
-    delete_requests = [{"Id": f"{i}", "MessageBody": f"{i}"} for i in range(0, 11)]
+    delete_requests = [{"Id": f"{i}", "MessageBody": f"{i}"} for i in range(11)]
 
     resp = aws_sqs_batchlib.send_message_batch(
         QueueUrl=sqs_queue, Entries=delete_requests, sqs_client=client_mock
